@@ -1,4 +1,4 @@
-
+library(cmdstanr)
 
 data <- read.csv("data_test.csv")
 
@@ -12,17 +12,24 @@ data.list <- list(
   N = nrow(data),
   incubation = 0,
   upper_bound = max(data$event2),
-  r = 0
+  r = 0.1
 )
 
+mod_full <- cmdstan_model(file.path("time_delays_full.stan"))
+mod_multi_mid_point <- cmdstan_model(
+  file.path("time_delays_multi_midpoint.stan")
+)
 
+fit_full <- mod_full$sample(
+  data = data.list,
+  seed = 1,
+  chains = 1,
+  parallel_chains = 1,
+  # num_samples = 20,            # total number of iterations per chain
+  refresh = 50 # print update every 500 iters
+)
 
-file <- file.path("time_delays_full.stan")
-file <- file.path("time_delays_multi_midpoint.stan")
-
-mod <- cmdstan_model(file)
-
-fit <- mod$sample(
+fit_multi_mid_point <- mod_multi_mid_point$sample(
   data = data.list,
   seed = 1,
   chains = 1,
